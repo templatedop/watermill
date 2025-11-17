@@ -37,3 +37,4 @@ examples/dlq/dlq
 examples/stateful-processor/stateful-processor
 examples/view/view
 examples/join/join
+examples/batch-consumer/batch-consumer

@@ -26,6 +26,7 @@ A comprehensive Kafka client library for Go, built on top of [Watermill](https:/
 - **Loopback Topics** for self-referencing flows
 
 📖 See [GOKA_FEATURES.md](GOKA_FEATURES.md) for detailed documentation on stateful processing features.
+📖 See [BATCH_PROCESSING.md](BATCH_PROCESSING.md) for detailed documentation on batch processing.
 
 ## Installation
 
@@ -444,6 +445,9 @@ Check the `examples/` directory for complete working examples:
 - `examples/stateful-processor/` - Stateful order statistics aggregation
 - `examples/view/` - HTTP API for querying state from group tables
 - `examples/join/` - Stream-table join for order enrichment
+
+### Advanced Processing Examples
+- `examples/batch-consumer/` - Advanced batch processing with metrics and error handling
 
 ## Running Examples
 
