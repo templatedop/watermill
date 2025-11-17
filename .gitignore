@@ -38,3 +38,4 @@ examples/stateful-processor/stateful-processor
 examples/view/view
 examples/join/join
 examples/batch-consumer/batch-consumer
+examples/production-ready/production-ready

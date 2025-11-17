@@ -4,14 +4,20 @@ A comprehensive Kafka client library for Go, built on top of [Watermill](https:/
 
 ## Features
 
+### Production-Ready (NEW!)
+- **Health Check Endpoints** - Kubernetes-ready `/health`, `/health/ready`, `/health/live` endpoints
+- **Structured Logging** - JSON logging with slog, correlation IDs, and trace context
+- **Configuration Validation** - Catch misconfigurations before deployment
+- **Graceful Shutdown** - Prevent message loss on shutdown with timeout handling
+- **Message Metadata Helpers** - Correlation IDs, tracing, timestamps, custom headers
+
 ### Core Messaging
 - **Easy-to-use API** for Kafka producers and consumers
 - **Comprehensive configuration** with heartbeat, timeouts, and all Kafka settings
 - **Dead Letter Queue (DLQ)** support with automatic retry logic
 - **Middleware** for logging, metrics, retry, timeout, circuit breaker, and more
 - **Ecommerce-specific** event types and handlers
-- **Batch processing** capabilities
-- **Graceful shutdown** handling
+- **Advanced batch processing** with metrics and error strategies
 - **Type-safe** message handling with Go generics
 
 ### Stateful Stream Processing (Goka-Inspired)

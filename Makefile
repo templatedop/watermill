@@ -1,4 +1,4 @@
-.PHONY: help deps test build clean kafka-up kafka-down run-producer run-consumer run-ecommerce run-dlq run-stateful run-view run-join run-batch
+.PHONY: help deps test build clean kafka-up kafka-down run-producer run-consumer run-ecommerce run-dlq run-stateful run-view run-join run-batch run-production
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -26,6 +26,7 @@ build: ## Build all examples
 	@cd examples/view && go build -o view main.go
 	@cd examples/join && go build -o join main.go
 	@cd examples/batch-consumer && go build -o batch-consumer main.go
+	@cd examples/production-ready && go build -o production-ready main.go
 	@echo "Build complete!"
 
 clean: ## Clean build artifacts
@@ -38,6 +39,7 @@ clean: ## Clean build artifacts
 	@rm -f examples/view/view
 	@rm -f examples/join/join
 	@rm -f examples/batch-consumer/batch-consumer
+	@rm -f examples/production-ready/production-ready
 	@rm -f coverage.out
 	@echo "Clean complete!"
 
@@ -84,6 +86,10 @@ run-join: ## Run join example
 run-batch: ## Run batch consumer example
 	@echo "Running batch consumer example..."
 	go run examples/batch-consumer/main.go
+
+run-production: ## Run production-ready example
+	@echo "Running production-ready example..."
+	go run examples/production-ready/main.go
 
 fmt: ## Format code
 	go fmt ./...
