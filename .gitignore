@@ -34,3 +34,6 @@ examples/ecommerce/ecommerce
 examples/producer/producer
 examples/consumer/consumer
 examples/dlq/dlq
+examples/stateful-processor/stateful-processor
+examples/view/view
+examples/join/join

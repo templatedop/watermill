@@ -1,9 +1,10 @@
 # Kafka Watermill Client Library
 
-A comprehensive Kafka client library for Go, built on top of [Watermill](https://github.com/ThreeDotsLabs/watermill), designed specifically for ecommerce microservices.
+A comprehensive Kafka client library for Go, built on top of [Watermill](https://github.com/ThreeDotsLabs/watermill), designed specifically for ecommerce microservices with **Goka-inspired stateful stream processing**.
 
 ## Features
 
+### Core Messaging
 - **Easy-to-use API** for Kafka producers and consumers
 - **Comprehensive configuration** with heartbeat, timeouts, and all Kafka settings
 - **Dead Letter Queue (DLQ)** support with automatic retry logic
@@ -11,7 +12,20 @@ A comprehensive Kafka client library for Go, built on top of [Watermill](https:/
 - **Ecommerce-specific** event types and handlers
 - **Batch processing** capabilities
 - **Graceful shutdown** handling
-- **Type-safe** message handling
+- **Type-safe** message handling with Go generics
+
+### Stateful Stream Processing (Goka-Inspired)
+- **Stateful Processors** with Kafka-backed persistent state
+- **Group Tables** for storing state in compacted topics
+- **Views** for read-only access to state (perfect for APIs)
+- **Context-based State Management** with `Value()` and `SetValue()`
+- **Codec System** for flexible serialization (JSON, String, Bytes, Int64)
+- **Stream-Table Joins** for enriching streams with reference data
+- **Stream-Stream Joins** with time windowing
+- **Pluggable Storage** for local caching (in-memory, extensible)
+- **Loopback Topics** for self-referencing flows
+
+📖 See [GOKA_FEATURES.md](GOKA_FEATURES.md) for detailed documentation on stateful processing features.
 
 ## Installation
 
@@ -420,10 +434,16 @@ msg.Ack()  // or msg.Nack()
 
 Check the `examples/` directory for complete working examples:
 
+### Basic Examples
 - `examples/ecommerce/` - Full ecommerce microservice example
 - `examples/producer/` - Producer-only example
 - `examples/consumer/` - Consumer with router and middleware
 - `examples/dlq/` - Dead letter queue handling
+
+### Stateful Processing Examples (Goka-Inspired)
+- `examples/stateful-processor/` - Stateful order statistics aggregation
+- `examples/view/` - HTTP API for querying state from group tables
+- `examples/join/` - Stream-table join for order enrichment
 
 ## Running Examples
 
