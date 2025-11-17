@@ -22,4 +22,7 @@ require (
 	// Schema registry
 	github.com/linkedin/goavro/v2 v2.12.0
 	google.golang.org/protobuf v1.32.0
+
+	// Security
+	github.com/xdg-go/scram v1.1.2
 )

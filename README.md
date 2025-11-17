@@ -19,6 +19,8 @@ A comprehensive Kafka client library for Go, built on top of [Watermill](https:/
 - **Exactly-Once Semantics** - Transactional processing with deduplication
 - **Windowing** - Tumbling, sliding, and session windows for stream aggregation
 - **Schema Registry** - Avro and Protobuf support with Confluent Schema Registry
+- **Stream Transformations** - Map, Filter, FlatMap operations with chainable API
+- **Enhanced Security** - Comprehensive SASL (PLAIN, SCRAM, GSSAPI, OAuth) and TLS/mTLS support
 
 ### Core Messaging
 - **Easy-to-use API** for Kafka producers and consumers

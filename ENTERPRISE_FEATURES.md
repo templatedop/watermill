@@ -11,6 +11,8 @@ This document provides comprehensive documentation for all enterprise-grade feat
 5. [Exactly-Once Semantics](#exactly-once-semantics)
 6. [Windowing](#windowing)
 7. [Schema Registry](#schema-registry)
+8. [Stream Transformations](#stream-transformations)
+9. [Enhanced Security](#enhanced-security)
 
 ---
 
@@ -709,6 +711,490 @@ err := codec.UpdateSchema(2) // Use version 2
 // - FORWARD: old schema can read new data
 // - FULL: both backward and forward compatible
 ```
+
+---
+
+## Stream Transformations
+
+Functional stream transformations with Map, Filter, and FlatMap operations.
+
+### Basic Map Transformation
+
+Transform each message using a function:
+
+```go
+import "github.com/templatedop/watermill/pkg/kafka"
+
+// Create stream transformer
+transformer := kafka.NewStreamTransformer(client, "input-topic", "output-topic")
+
+// Map transformation - add tax to orders
+err := transformer.Map(func(msg *message.Message) (*message.Message, error) {
+    var order map[string]interface{}
+    codec := &kafka.JSONCodec{}
+    codec.Decode(msg.Payload, &order)
+
+    // Add 10% tax
+    total := order["total"].(float64)
+    order["total"] = total * 1.1
+    order["tax"] = total * 0.1
+
+    payload, _ := codec.Encode(order)
+    msg.Payload = payload
+
+    return msg, nil
+})
+
+// Run transformer
+transformer.Run(context.Background())
+```
+
+### Filter Transformation
+
+Filter messages based on a predicate:
+
+```go
+transformer := kafka.NewStreamTransformer(client, "orders", "high-value-orders")
+
+// Filter - only orders > $100
+err := transformer.Filter(func(msg *message.Message) bool {
+    var order map[string]interface{}
+    codec := &kafka.JSONCodec{}
+    codec.Decode(msg.Payload, &order)
+
+    total := order["total"].(float64)
+    return total > 100.0
+})
+
+transformer.Run(context.Background())
+```
+
+### FlatMap Transformation
+
+Transform one message into multiple messages:
+
+```go
+transformer := kafka.NewStreamTransformer(client, "orders", "order-items")
+
+// FlatMap - split order into individual items
+err := transformer.FlatMap(func(msg *message.Message) ([]*message.Message, error) {
+    var order map[string]interface{}
+    codec := &kafka.JSONCodec{}
+    codec.Decode(msg.Payload, &order)
+
+    items := order["items"].([]interface{})
+    messages := make([]*message.Message, 0, len(items))
+
+    for i, item := range items {
+        payload, _ := codec.Encode(item)
+        newMsg := message.NewMessage(
+            fmt.Sprintf("%s-%d", msg.UUID, i),
+            payload,
+        )
+        messages = append(messages, newMsg)
+    }
+
+    return messages, nil
+})
+
+transformer.Run(context.Background())
+```
+
+### Chainable Transformations
+
+Chain multiple transformations together:
+
+```go
+transformer := kafka.NewChainableTransformer(client, "raw-orders", "processed-orders")
+
+// Build transformation chain
+transformer.
+    Filter(func(msg *message.Message) bool {
+        // Filter valid orders
+        return msg.Metadata.Get("status") == "valid"
+    }).
+    Map(func(msg *message.Message) (*message.Message, error) {
+        // Add processing timestamp
+        msg.Metadata.Set("processed_at", time.Now().Format(time.RFC3339))
+        return msg, nil
+    }).
+    FlatMap(func(msg *message.Message) ([]*message.Message, error) {
+        // Expand if needed
+        return []*message.Message{msg}, nil
+    }).
+    Build()
+```
+
+### Common Transformations
+
+Use built-in common transformations:
+
+```go
+common := &kafka.CommonTransformations{}
+
+// Add metadata field
+addTimestamp := common.AddField("processed_at", time.Now().Format(time.RFC3339))
+
+// JSON transformation
+addTax := common.JSONTransform(func(data map[string]interface{}) (map[string]interface{}, error) {
+    total := data["total"].(float64)
+    data["total"] = total * 1.1
+    data["tax"] = total * 0.1
+    return data, nil
+})
+
+// Filter by metadata
+filterPremium := common.FilterByMetadata("tier", "premium")
+
+// Split by delimiter
+splitCSV := common.SplitByDelimiter(',')
+
+// Expand JSON array
+expandItems := common.ExpandArray("items")
+
+// Enrich with lookup
+enrichCustomer := common.Enrich(func(msg *message.Message) (map[string]interface{}, error) {
+    customerID := msg.Metadata.Get("customer_id")
+    customer, _ := customerService.Get(customerID)
+    return map[string]interface{}{
+        "customer_name": customer.Name,
+        "customer_tier": customer.Tier,
+    }, nil
+})
+```
+
+### Async Transformations
+
+Process transformations asynchronously with parallelism:
+
+```go
+// Create async transformer with 10 workers
+transformer := kafka.NewAsyncTransformer(
+    client,
+    "input",
+    "output",
+    10, // worker count
+    func(msg *message.Message) (*message.Message, error) {
+        // Heavy transformation
+        result := expensiveOperation(msg)
+        return result, nil
+    },
+)
+
+transformer.Run(context.Background())
+```
+
+### Example: E-commerce Order Processing
+
+Complete example with chained transformations:
+
+```go
+transformer := kafka.NewChainableTransformer(client, "raw-orders", "enriched-orders")
+
+common := &kafka.CommonTransformations{}
+
+transformer.
+    // 1. Filter valid orders
+    Filter(func(msg *message.Message) bool {
+        var order map[string]interface{}
+        codec := &kafka.JSONCodec{}
+        codec.Decode(msg.Payload, &order)
+        return order["status"] == "confirmed"
+    }).
+    // 2. Add tax
+    Map(common.JSONTransform(func(data map[string]interface{}) (map[string]interface{}, error) {
+        total := data["total"].(float64)
+        data["total"] = total * 1.1
+        data["tax"] = total * 0.1
+        return data, nil
+    })).
+    // 3. Enrich with customer data
+    Map(common.Enrich(func(msg *message.Message) (map[string]interface{}, error) {
+        var order map[string]interface{}
+        codec := &kafka.JSONCodec{}
+        codec.Decode(msg.Payload, &order)
+
+        customerID := order["customer_id"].(string)
+        customer, _ := getCustomerFromDB(customerID)
+
+        return map[string]interface{}{
+            "customer_name":  customer.Name,
+            "customer_email": customer.Email,
+            "customer_tier":  customer.Tier,
+        }, nil
+    })).
+    // 4. Add processing metadata
+    Map(common.AddField("processed_at", time.Now().Format(time.RFC3339))).
+    Build()
+```
+
+---
+
+## Enhanced Security
+
+Comprehensive SASL and TLS/SSL security features for production deployments.
+
+### SASL Authentication
+
+#### SASL PLAIN
+
+Simple username/password authentication:
+
+```go
+import "github.com/templatedop/watermill/pkg/kafka"
+
+// Create SASL PLAIN config
+saslConfig := kafka.NewSASLPlainConfig("username", "password")
+
+// Create security config
+securityConfig := kafka.DefaultSecurityConfig()
+securityConfig.SASL = saslConfig
+
+// Apply to Kafka config
+config := kafka.DefaultConfig()
+config.Brokers = []string{"localhost:9092"}
+
+saramaConfig, _ := config.ToSaramaConfig()
+securityConfig.ApplyToSaramaConfig(saramaConfig)
+
+client, _ := kafka.NewClient(config)
+```
+
+#### SASL SCRAM (Recommended for Production)
+
+More secure than PLAIN with SHA-256 or SHA-512:
+
+```go
+// SCRAM-SHA-256
+saslConfig := kafka.NewSASLSCRAMConfig(
+    kafka.SASLTypeSCRAMSHA256,
+    "username",
+    "password",
+)
+
+// Or SCRAM-SHA-512 for higher security
+saslConfig := kafka.NewSASLSCRAMConfig(
+    kafka.SASLTypeSCRAMSHA512,
+    "username",
+    "password",
+)
+
+securityConfig := kafka.DefaultSecurityConfig()
+securityConfig.SASL = saslConfig
+```
+
+#### SASL GSSAPI (Kerberos)
+
+Enterprise authentication with Kerberos:
+
+```go
+saslConfig := kafka.NewSASLGSSAPIConfig(
+    "kafka",                        // service name
+    "EXAMPLE.COM",                  // realm
+    "user@EXAMPLE.COM",             // username
+    "password",                     // password
+    "/etc/security/user.keytab",    // keytab path
+    "/etc/krb5.conf",               // kerberos config
+)
+
+securityConfig := kafka.DefaultSecurityConfig()
+securityConfig.SASL = saslConfig
+```
+
+#### SASL OAuth Bearer
+
+Modern token-based authentication:
+
+```go
+saslConfig := kafka.NewSASLOAuthConfig(func() (string, error) {
+    // Get token from your OAuth provider
+    token, err := oauthClient.GetAccessToken()
+    return token, err
+})
+
+// Optional: Add extensions
+saslConfig.OAuth.Extensions = map[string]string{
+    "logicalCluster": "cluster-1",
+    "identityPoolId": "pool-123",
+}
+
+securityConfig := kafka.DefaultSecurityConfig()
+securityConfig.SASL = saslConfig
+```
+
+### TLS/SSL Encryption
+
+#### Basic TLS
+
+Server certificate validation:
+
+```go
+tlsConfig := kafka.NewTLSConfig(
+    "",                    // no client cert
+    "",                    // no client key
+    "/path/to/ca.crt",     // CA certificate
+)
+
+securityConfig := kafka.DefaultSecurityConfig()
+securityConfig.TLS = tlsConfig
+```
+
+#### Mutual TLS (mTLS)
+
+Client and server authentication:
+
+```go
+tlsConfig := kafka.NewMutualTLSConfig(
+    "/path/to/client.crt",
+    "/path/to/client.key",
+    "/path/to/ca.crt",
+)
+
+// Optional: Set server name for SNI
+tlsConfig.ServerName = "kafka.example.com"
+
+// Optional: Set minimum TLS version
+tlsConfig.MinVersion = tls.VersionTLS13
+
+securityConfig := kafka.DefaultSecurityConfig()
+securityConfig.TLS = tlsConfig
+```
+
+#### TLS with In-Memory Certificates
+
+Use certificate data instead of files:
+
+```go
+certData, _ := os.ReadFile("/path/to/client.crt")
+keyData, _ := os.ReadFile("/path/to/client.key")
+caData, _ := os.ReadFile("/path/to/ca.crt")
+
+tlsConfig := &kafka.TLSConfig{
+    Enabled:  true,
+    CertData: certData,
+    KeyData:  keyData,
+    CAData:   caData,
+}
+
+securityConfig := kafka.DefaultSecurityConfig()
+securityConfig.TLS = tlsConfig
+```
+
+### Secure Config Builder
+
+Fluent API for building secure configurations:
+
+```go
+config, err := kafka.NewSecureConfigBuilder().
+    WithBrokers([]string{"kafka1:9093", "kafka2:9093", "kafka3:9093"}).
+    WithConsumerGroup("secure-group").
+    WithSASLSCRAM(kafka.SASLTypeSCRAMSHA256, "username", "password").
+    WithMutualTLS("/certs/client.crt", "/certs/client.key", "/certs/ca.crt").
+    Build()
+
+client, _ := kafka.NewClient(config)
+```
+
+### Environment Variable Configuration
+
+Load security config from environment variables:
+
+```bash
+# Set environment variables
+export KAFKA_SASL_ENABLED=true
+export KAFKA_SASL_MECHANISM=SCRAM-SHA-256
+export KAFKA_SASL_USERNAME=myuser
+export KAFKA_SASL_PASSWORD=mypassword
+export KAFKA_TLS_ENABLED=true
+export KAFKA_TLS_CERT_FILE=/certs/client.crt
+export KAFKA_TLS_KEY_FILE=/certs/client.key
+export KAFKA_TLS_CA_FILE=/certs/ca.crt
+```
+
+```go
+// Load from environment
+loader := &kafka.EnvConfigLoader{}
+securityConfig := loader.LoadFromEnv()
+
+// Apply to config
+config := kafka.DefaultConfig()
+saramaConfig, _ := config.ToSaramaConfig()
+securityConfig.ApplyToSaramaConfig(saramaConfig)
+```
+
+### Complete Secure Setup Example
+
+Production-ready secure Kafka connection:
+
+```go
+// Build secure configuration
+config, err := kafka.NewSecureConfigBuilder().
+    WithBrokers([]string{
+        "kafka1.prod.example.com:9093",
+        "kafka2.prod.example.com:9093",
+        "kafka3.prod.example.com:9093",
+    }).
+    WithConsumerGroup("payment-processor").
+    // SCRAM-SHA-512 authentication
+    WithSASLSCRAM(
+        kafka.SASLTypeSCRAMSHA512,
+        os.Getenv("KAFKA_USERNAME"),
+        os.Getenv("KAFKA_PASSWORD"),
+    ).
+    // Mutual TLS
+    WithMutualTLS(
+        "/etc/kafka/certs/client.crt",
+        "/etc/kafka/certs/client.key",
+        "/etc/kafka/certs/ca.crt",
+    ).
+    Build()
+
+if err != nil {
+    log.Fatal(err)
+}
+
+// Create client
+client, err := kafka.NewClient(config)
+if err != nil {
+    log.Fatal(err)
+}
+defer client.Close()
+
+// Use client securely
+producer := kafka.NewProducer(client)
+producer.Publish(ctx, "secure-topic", payload)
+```
+
+### Security Best Practices
+
+1. **Always use TLS in production**
+   - Minimum TLS 1.2, prefer TLS 1.3
+   - Use mutual TLS for highest security
+
+2. **Use SCRAM over PLAIN**
+   - SCRAM-SHA-256 minimum
+   - SCRAM-SHA-512 for sensitive data
+
+3. **Rotate credentials regularly**
+   - Implement automated credential rotation
+   - Use OAuth for dynamic tokens
+
+4. **Validate certificates**
+   - Never use `InsecureSkipVerify` in production
+   - Keep CA certificates updated
+
+5. **Use Kerberos for enterprise**
+   - GSSAPI integration with AD/LDAP
+   - Centralized authentication management
+
+6. **Secure credential storage**
+   - Use secrets management (Vault, AWS Secrets Manager)
+   - Never commit credentials to code
+
+7. **Network security**
+   - Use VPN or private networks
+   - Implement network policies
+   - Enable broker-level ACLs
 
 ---
 
