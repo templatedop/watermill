@@ -11,6 +11,15 @@ A comprehensive Kafka client library for Go, built on top of [Watermill](https:/
 - **Graceful Shutdown** - Prevent message loss on shutdown with timeout handling
 - **Message Metadata Helpers** - Correlation IDs, tracing, timestamps, custom headers
 
+### Enterprise Features (NEW!)
+- **Testing Suite** - Comprehensive unit, integration, and benchmark tests
+- **Prometheus Metrics** - Production-ready metrics for monitoring and alerting
+- **OpenTelemetry Tracing** - Distributed tracing with full context propagation
+- **Persistent Storage** - LevelDB, Redis, and BadgerDB backends for stateful processing
+- **Exactly-Once Semantics** - Transactional processing with deduplication
+- **Windowing** - Tumbling, sliding, and session windows for stream aggregation
+- **Schema Registry** - Avro and Protobuf support with Confluent Schema Registry
+
 ### Core Messaging
 - **Easy-to-use API** for Kafka producers and consumers
 - **Comprehensive configuration** with heartbeat, timeouts, and all Kafka settings
