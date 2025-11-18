@@ -115,13 +115,14 @@ err = consumer.Consume(ctx, []string{"orders"}, func(ctx context.Context, record
 
 All features from the watermill/sarama implementation plus franz-go specific enhancements:
 
-#### Core Features
+#### Core Features (Phase 1 & 2 - COMPLETED ✅)
 - [x] **Configuration Management** - Comprehensive config with validation
 - [x] **Producer/Consumer** - High-performance produce and consume
 - [x] **Dead Letter Queue** - Automatic retry and DLQ handling
-- [x] **Middleware** - Extensible middleware chain
-- [ ] **Batch Processing** - Advanced batch operations (IN PROGRESS)
-- [ ] **Stateful Processing** - Goka-inspired processors (IN PROGRESS)
+- [x] **Middleware** - Extensible middleware chain (logging, retry, timeout, metrics, circuit breaker)
+- [x] **Batch Processing** - Advanced batch operations with multiple error strategies
+- [x] **Ecommerce Events** - Order, Payment, Inventory event types
+- [ ] **Stateful Processing** - Goka-inspired processors (PLANNED - Phase 3)
 
 #### Enterprise Features
 - [ ] **Testing Suite** - Unit, integration, and benchmarks (PLANNED)
