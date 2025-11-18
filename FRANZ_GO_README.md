@@ -30,21 +30,18 @@ Franz-go is a modern, high-performance Kafka client for Go that offers significa
 
 ```
 pkg/franzgo/
-├── config.go           # Configuration with franz-go options
-├── client.go           # Main Kafka client
-├── producer.go         # High-performance producer
-├── consumer.go         # Consumer with DLQ support
-├── batch.go            # Advanced batch processing
-├── middleware.go       # Middleware chain
-├── dlq.go              # Dead letter queue
-├── processor.go        # Stateful stream processing
-├── transform.go        # Stream transformations
-├── window.go           # Windowing (tumbling, sliding, session)
-├── transaction.go      # Exactly-once semantics
-├── metrics.go          # Prometheus metrics
-├── tracing.go          # OpenTelemetry tracing
-├── security.go         # Enhanced security (SASL/TLS)
-└── schema/             # Schema registry support
+├── config.go           # Configuration with franz-go options ✅
+├── client.go           # Main Kafka client ✅
+├── producer.go         # High-performance producer ✅
+├── consumer.go         # Consumer with DLQ support ✅
+├── batch.go            # Advanced batch processing ✅
+├── middleware.go       # Middleware chain ✅
+├── transform.go        # Stream transformations ✅
+├── window.go           # Windowing (tumbling, sliding, session) ✅
+├── transaction.go      # Exactly-once semantics ✅
+├── metrics.go          # Prometheus metrics (PLANNED)
+├── tracing.go          # OpenTelemetry tracing (PLANNED)
+└── schema/             # Schema registry support (PLANNED)
     ├── registry.go     # Confluent Schema Registry
     ├── avro.go         # Avro codec
     └── protobuf.go     # Protobuf codec
@@ -122,18 +119,24 @@ All features from the watermill/sarama implementation plus franz-go specific enh
 - [x] **Middleware** - Extensible middleware chain (logging, retry, timeout, metrics, circuit breaker)
 - [x] **Batch Processing** - Advanced batch operations with multiple error strategies
 - [x] **Ecommerce Events** - Order, Payment, Inventory event types
-- [ ] **Stateful Processing** - Goka-inspired processors (PLANNED - Phase 3)
+- [x] **Enhanced Security** - SASL/TLS (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512)
 
-#### Enterprise Features
-- [ ] **Testing Suite** - Unit, integration, and benchmarks (PLANNED)
-- [ ] **Prometheus Metrics** - Built-in metrics (PLANNED)
-- [ ] **OpenTelemetry** - Distributed tracing (PLANNED)
-- [ ] **Persistent Storage** - LevelDB, Redis, BadgerDB (PLANNED)
-- [ ] **Exactly-Once** - Transactional processing (PLANNED)
-- [ ] **Windowing** - Time-based aggregation (PLANNED)
-- [ ] **Schema Registry** - Avro/Protobuf support (PLANNED)
-- [ ] **Stream Transformations** - Map/Filter/FlatMap (PLANNED)
-- [ ] **Enhanced Security** - SASL/TLS (PARTIAL)
+#### Advanced Features (Phase 3 - COMPLETED ✅)
+- [x] **Stream Transformations** - Map/Filter/FlatMap with chainable API
+- [x] **Exactly-Once Semantics** - Transactional processing with franz-go's simple API
+- [x] **Windowing** - Tumbling, sliding, and session windows with aggregations
+- [x] **Idempotent Producer** - Automatic deduplication
+- [x] **Transaction Manager** - High-level transaction management
+- [x] **Common Transformations** - Header manipulation, JSON transforms, enrichment
+- [x] **Async Transformers** - Parallel processing with worker pools
+
+#### Enterprise Features (Phase 4 - PLANNED)
+- [ ] **Testing Suite** - Unit, integration, and benchmarks
+- [ ] **Prometheus Metrics** - Built-in metrics integration
+- [ ] **OpenTelemetry** - Distributed tracing
+- [ ] **Persistent Storage** - LevelDB, Redis, BadgerDB backends
+- [ ] **Schema Registry** - Confluent Schema Registry with Avro/Protobuf support
+- [ ] **Stateful Processing** - Goka-inspired state management
 
 ### Franz-go Specific Advantages
 
@@ -176,8 +179,50 @@ client.AddHook(&franzgo.MetricsHook{
 })
 ```
 
-#### 4. Advanced Features
+#### 4. Advanced Features (Phase 3)
 
+**Stream Transformations:**
+```go
+// Simple map transformation
+transformer := franzgo.NewStreamTransformer(client, "input", "output")
+transformer.Map(ctx, func(record *kgo.Record) (*kgo.Record, error) {
+    // Transform record
+    return record, nil
+})
+
+// Chained transformations
+franzgo.NewChainableTransformer(client, "input", "output").
+    Filter(predicate).
+    Map(transformer).
+    FlatMap(expander).
+    Run(ctx)
+```
+
+**Exactly-Once Semantics:**
+```go
+// Simple transactional API
+txnProducer, _ := franzgo.NewTransactionalProducer(config, txnConfig)
+txnProducer.ExecuteTransaction(ctx, func(ctx context.Context) error {
+    // All operations within this function are atomic
+    txnProducer.Produce(ctx, "topic1", key1, value1)
+    txnProducer.Produce(ctx, "topic2", key2, value2)
+    return nil // Commit on success
+})
+```
+
+**Windowing:**
+```go
+// Tumbling window aggregation
+window := franzgo.NewTumblingWindow(client, 5*time.Second, func(wc *franzgo.WindowContext) error {
+    aggregator := &franzgo.WindowAggregator{}
+    count, _ := aggregator.Count(wc)
+    sum, _ := aggregator.Sum(wc, "amount")
+    // Emit aggregated results
+    return wc.Emit("output", key, result)
+})
+```
+
+**Franz-go Native Features:**
 - **Rack awareness** for optimized partition assignment
 - **Sticky partitioning** for better batching
 - **Custom partitioners** with simple interface
@@ -297,32 +342,41 @@ config := franzgo.NewConfigBuilder().
 
 ## Roadmap
 
-### Phase 1: Core Features (Current)
+### Phase 1: Core Features ✅ COMPLETED
 - [x] Configuration system
 - [x] Client management
 - [x] Basic producer
 - [x] Basic consumer
 - [x] Security (SASL/TLS)
 
-### Phase 2: Advanced Features (Next)
-- [ ] Batch processing
-- [ ] DLQ implementation
-- [ ] Middleware system
-- [ ] Stateful processing
-- [ ] Stream transformations
+### Phase 2: Advanced Features ✅ COMPLETED
+- [x] Batch processing
+- [x] DLQ implementation
+- [x] Middleware system
+- [x] Ecommerce event types
+- [x] Comprehensive examples
 
-### Phase 3: Enterprise Features
-- [ ] Complete metrics integration
+### Phase 3: Stream Processing ✅ COMPLETED
+- [x] Stream transformations (Map/Filter/FlatMap)
+- [x] Exactly-once semantics
+- [x] Windowing operations (Tumbling/Sliding/Session)
+- [x] Transaction support
+- [x] Idempotent producer
+- [x] Phase 3 examples
+
+### Phase 4: Enterprise Features (NEXT)
+- [ ] Complete metrics integration (Prometheus)
 - [ ] OpenTelemetry tracing
-- [ ] Exactly-once semantics
-- [ ] Windowing operations
-- [ ] Schema registry
+- [ ] Persistent storage backends
+- [ ] Schema registry (Avro/Protobuf)
+- [ ] Stateful processing (Goka-style)
 
-### Phase 4: Optimizations
+### Phase 5: Optimizations
 - [ ] Performance tuning
 - [ ] Benchmarking suite
 - [ ] Production examples
 - [ ] Migration tools
+- [ ] Testing suite
 
 ## Contributing
 
