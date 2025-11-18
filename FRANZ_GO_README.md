@@ -39,12 +39,13 @@ pkg/franzgo/
 ├── transform.go        # Stream transformations ✅
 ├── window.go           # Windowing (tumbling, sliding, session) ✅
 ├── transaction.go      # Exactly-once semantics ✅
-├── metrics.go          # Prometheus metrics (PLANNED)
-├── tracing.go          # OpenTelemetry tracing (PLANNED)
-└── schema/             # Schema registry support (PLANNED)
-    ├── registry.go     # Confluent Schema Registry
-    ├── avro.go         # Avro codec
-    └── protobuf.go     # Protobuf codec
+├── metrics.go          # Prometheus metrics ✅
+├── tracing.go          # OpenTelemetry tracing ✅
+├── storage.go          # Storage backends (Memory, LevelDB, Redis, BadgerDB) ✅
+└── schema/             # Schema registry support ✅
+    ├── registry.go     # Confluent Schema Registry ✅
+    ├── avro.go         # Avro codec ✅
+    └── protobuf.go     # Protobuf codec ✅
 ```
 
 ## Quick Start
@@ -130,13 +131,21 @@ All features from the watermill/sarama implementation plus franz-go specific enh
 - [x] **Common Transformations** - Header manipulation, JSON transforms, enrichment
 - [x] **Async Transformers** - Parallel processing with worker pools
 
-#### Enterprise Features (Phase 4 - PLANNED)
+#### Enterprise Features (Phase 4 - COMPLETED ✅)
+- [x] **Prometheus Metrics** - Comprehensive metrics for all operations
+- [x] **OpenTelemetry Tracing** - Distributed tracing for producers, consumers, transformations, windows, transactions
+- [x] **Persistent Storage** - In-memory, LevelDB, Redis, BadgerDB backends with partitioning
+- [x] **Schema Registry** - Confluent Schema Registry client with caching
+- [x] **Avro Codec** - Full Avro serialization/deserialization with schema builder
+- [x] **Protobuf Codec** - Protobuf support with type-safe generics
+- [x] **Storage Abstraction** - Pluggable storage interface for stateful processing
+- [x] **Metrics Hooks** - Franz-go hooks for automatic metrics collection
+
+#### Future Enhancements (Phase 5)
 - [ ] **Testing Suite** - Unit, integration, and benchmarks
-- [ ] **Prometheus Metrics** - Built-in metrics integration
-- [ ] **OpenTelemetry** - Distributed tracing
-- [ ] **Persistent Storage** - LevelDB, Redis, BadgerDB backends
-- [ ] **Schema Registry** - Confluent Schema Registry with Avro/Protobuf support
-- [ ] **Stateful Processing** - Goka-inspired state management
+- [ ] **Stateful Processing** - Goka-inspired state management with storage backends
+- [ ] **Performance Benchmarks** - Comprehensive benchmark suite
+- [ ] **Migration Tools** - Tools for migrating from sarama to franz-go
 
 ### Franz-go Specific Advantages
 
@@ -220,6 +229,30 @@ window := franzgo.NewTumblingWindow(client, 5*time.Second, func(wc *franzgo.Wind
     // Emit aggregated results
     return wc.Emit("output", key, result)
 })
+```
+
+**Enterprise Observability (Phase 4):**
+```go
+// Prometheus metrics
+metrics := franzgo.NewPrometheusMetrics("my_service")
+metrics.RecordMessageProduced("orders", 0)
+http.Handle("/metrics", promhttp.HandlerFor(metrics.Registry(), promhttp.HandlerOpts{}))
+
+// OpenTelemetry tracing
+tracingConfig := franzgo.DefaultTracingConfig("my-service")
+producerTracer := franzgo.NewProducerTracer(tracingConfig)
+ctx, span := producerTracer.TraceProduce(ctx, record)
+defer span.End()
+
+// Persistent storage
+storage, _ := franzgo.NewLevelDBStorage("/data/state")
+// or NewRedisStorage, NewBadgerStorage, NewMemoryStorage
+storage.Set("user:123", userData)
+
+// Schema Registry + Avro
+registry := schema.NewConfluentSchemaRegistry("http://localhost:8081")
+codec := schema.NewAvroCodec(registry)
+encoded, _ := codec.Encode(schemaID, data)
 ```
 
 **Franz-go Native Features:**
@@ -364,19 +397,22 @@ config := franzgo.NewConfigBuilder().
 - [x] Idempotent producer
 - [x] Phase 3 examples
 
-### Phase 4: Enterprise Features (NEXT)
-- [ ] Complete metrics integration (Prometheus)
-- [ ] OpenTelemetry tracing
-- [ ] Persistent storage backends
-- [ ] Schema registry (Avro/Protobuf)
-- [ ] Stateful processing (Goka-style)
+### Phase 4: Enterprise Observability & Storage ✅ COMPLETED
+- [x] Prometheus metrics (comprehensive)
+- [x] OpenTelemetry tracing (all operations)
+- [x] Persistent storage backends (4 types)
+- [x] Schema registry (Confluent + caching)
+- [x] Avro codec (full support)
+- [x] Protobuf codec (type-safe)
+- [x] Phase 4 examples
 
-### Phase 5: Optimizations
+### Phase 5: Production Readiness (NEXT)
+- [ ] Stateful processing (Goka-style with storage backends)
 - [ ] Performance tuning
-- [ ] Benchmarking suite
-- [ ] Production examples
-- [ ] Migration tools
-- [ ] Testing suite
+- [ ] Comprehensive benchmarking suite
+- [ ] Production deployment examples
+- [ ] Migration tools from sarama
+- [ ] Complete testing suite
 
 ## Contributing
 
