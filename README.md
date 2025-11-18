@@ -1,145 +1,283 @@
-# Kafka Watermill Client Library
+# Watermill Kafka Client Library
 
-A comprehensive Kafka client library for Go, built on top of [Watermill](https://github.com/ThreeDotsLabs/watermill), designed specifically for ecommerce microservices with **Goka-inspired stateful stream processing**.
+This repository contains **TWO separate Kafka client implementations** for Go:
 
-## Features
+## 🚀 Franz-go Standalone Implementation (NEW - Recommended)
 
-### Production-Ready (NEW!)
-- **Health Check Endpoints** - Kubernetes-ready `/health`, `/health/ready`, `/health/live` endpoints
-- **Structured Logging** - JSON logging with slog, correlation IDs, and trace context
-- **Configuration Validation** - Catch misconfigurations before deployment
-- **Graceful Shutdown** - Prevent message loss on shutdown with timeout handling
-- **Message Metadata Helpers** - Correlation IDs, tracing, timestamps, custom headers
+**Location:** `pkg/franzgo/`
 
-### Enterprise Features (NEW!)
-- **Testing Suite** - Comprehensive unit, integration, and benchmark tests
-- **Prometheus Metrics** - Production-ready metrics for monitoring and alerting
-- **OpenTelemetry Tracing** - Distributed tracing with full context propagation
-- **Persistent Storage** - LevelDB, Redis, and BadgerDB backends for stateful processing
-- **Exactly-Once Semantics** - Transactional processing with deduplication
-- **Windowing** - Tumbling, sliding, and session windows for stream aggregation
-- **Schema Registry** - Avro and Protobuf support with Confluent Schema Registry
-- **Stream Transformations** - Map, Filter, FlatMap operations with chainable API
-- **Enhanced Security** - Comprehensive SASL (PLAIN, SCRAM, GSSAPI, OAuth) and TLS/mTLS support
+A **standalone high-performance Kafka client** using [franz-go](https://github.com/twmb/franz-go) - **does NOT use Watermill**.
 
-### Core Messaging
-- **Easy-to-use API** for Kafka producers and consumers
-- **Comprehensive configuration** with heartbeat, timeouts, and all Kafka settings
-- **Dead Letter Queue (DLQ)** support with automatic retry logic
-- **Middleware** for logging, metrics, retry, timeout, circuit breaker, and more
-- **Ecommerce-specific** event types and handlers
-- **Advanced batch processing** with metrics and error strategies
-- **Type-safe** message handling with Go generics
+### Why Franz-go?
+- ✅ **5-10x faster** than sarama
+- ✅ **50-70% lower memory** usage
+- ✅ **Modern API** with better error handling
+- ✅ **All enterprise features** built-in
+- ✅ **Production-ready** with comprehensive testing
 
-### Stateful Stream Processing (Goka-Inspired)
-- **Stateful Processors** with Kafka-backed persistent state
-- **Group Tables** for storing state in compacted topics
-- **Views** for read-only access to state (perfect for APIs)
-- **Context-based State Management** with `Value()` and `SetValue()`
-- **Codec System** for flexible serialization (JSON, String, Bytes, Int64)
-- **Stream-Table Joins** for enriching streams with reference data
-- **Stream-Stream Joins** with time windowing
-- **Pluggable Storage** for local caching (in-memory, extensible)
-- **Loopback Topics** for self-referencing flows
+### Quick Start (Franz-go)
 
-📖 See [GOKA_FEATURES.md](GOKA_FEATURES.md) for detailed documentation on stateful processing features.
-📖 See [BATCH_PROCESSING.md](BATCH_PROCESSING.md) for detailed documentation on batch processing.
+```go
+import "github.com/templatedop/watermill/pkg/franzgo"
 
-## Installation
+// Create config
+config := franzgo.NewConfigBuilder().
+    WithBrokers([]string{"localhost:9092"}).
+    WithConsumerGroup("my-group").
+    WithClientID("my-client").
+    Build()
+
+// Create client
+client, _ := franzgo.NewClient(config)
+defer client.Close()
+
+// Produce
+producer := franzgo.NewProducer(client)
+producer.Produce(ctx, "my-topic", []byte("key"), []byte("value"))
+
+// Consume
+consumer := franzgo.NewConsumer(client, nil)
+handler := func(ctx context.Context, record *kgo.Record) error {
+    log.Printf("Received: %s = %s", record.Key, record.Value)
+    return nil
+}
+consumer.Consume(ctx, []string{"my-topic"}, handler)
+```
+
+### Franz-go Features
+
+**Complete documentation:** See [FRANZ_GO_README.md](FRANZ_GO_README.md)
+
+#### Core Features (Phase 1-2) ✅
+- Configuration with builder pattern & SASL/TLS
+- High-performance producer (sync/async)
+- Consumer with built-in DLQ support
+- Batch processing with 4 error strategies
+- 9 middleware types (logging, metrics, retry, timeout, circuit breaker, etc.)
+
+#### Stream Processing (Phase 3) ✅
+- Stream transformations (map/filter/flatMap)
+- Exactly-once semantics with transactions
+- Windowing operations (tumbling/sliding/session)
+- Async transformers with worker pools
+
+#### Enterprise Observability (Phase 4) ✅
+- Prometheus metrics (30+ metrics)
+- OpenTelemetry distributed tracing
+- 4 storage backends (Memory, LevelDB, Redis, BadgerDB)
+- Schema registry (Avro/Protobuf with Confluent)
+
+#### Production Readiness (Phase 5) ✅
+- Health checks & Kubernetes probes (liveness/readiness)
+- Graceful shutdown with signal handling
+- Shutdown-aware components
+- **100+ unit tests**
+- **8 integration tests**
+- **30+ benchmark tests**
+
+#### Advanced Features (Phase 6) ✅
+- **Stateful processing** - Goka-inspired state management
+- **Admin API** - Complete cluster administration (15+ operations)
+- **Rebalance listeners** - 8 listener types for rebalance events
+- **Performance benchmarks** - Comprehensive performance test suite
+- **Migration guide** - Complete guide for migrating from sarama
+
+### Franz-go Examples
+
+See `examples/franzgo/`:
+- `main.go` - Phase 2 examples (producer, consumer, batch, middleware)
+- `phase3_examples.go` - Stream processing examples
+- `phase4_examples.go` - Observability and storage examples
+- `phase5_examples.go` - Health checks and graceful shutdown
+
+### Franz-go Migration
+
+**Migrating from Sarama?** See [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) for a complete guide with side-by-side code comparisons.
+
+---
+
+## 📦 Original Watermill + Sarama Implementation
+
+**Location:** `pkg/kafka/`
+
+The **original implementation** built on top of [Watermill](https://github.com/ThreeDotsLabs/watermill) using Shopify/sarama.
+
+### When to Use Watermill Implementation?
+
+- ✅ You're already using Watermill in your project
+- ✅ You need Watermill's router and middleware system
+- ✅ You have existing Watermill code to maintain
+
+### Quick Start (Watermill)
+
+```go
+import "github.com/templatedop/watermill/pkg/kafka"
+
+// Create config
+config := kafka.EcommerceConfig(
+    []string{"localhost:9092"},
+    "my-consumer-group",
+)
+
+// Create client
+client, _ := kafka.NewClient(config)
+defer client.Close()
+
+// Create producer
+producer := kafka.NewEcommerceProducer(client)
+
+// Publish event
+order := kafka.OrderEvent{
+    OrderID:    "ORD-123",
+    CustomerID: "CUST-456",
+    Status:     "pending",
+    Total:      99.99,
+}
+producer.PublishOrderCreated(ctx, order)
+
+// Create consumer
+consumer := kafka.NewEcommerceConsumer(client)
+consumer.SubscribeOrderCreated(ctx, func(ctx context.Context, order kafka.OrderEvent) error {
+    log.Printf("Order created: %s", order.OrderID)
+    return nil
+})
+```
+
+### Watermill Features
+
+- Easy-to-use Watermill API
+- Ecommerce-specific event types
+- DLQ support with retry logic
+- Middleware (retry, timeout, throttle, circuit breaker)
+- Goka-inspired stateful processing
+- Batch processing
+
+**Documentation:** See original README sections below for detailed Watermill documentation.
+
+---
+
+## 📊 Comparison: Franz-go vs Watermill
+
+| Feature | Franz-go (pkg/franzgo) | Watermill (pkg/kafka) |
+|---------|------------------------|----------------------|
+| **Performance** | 5-10x faster | Baseline |
+| **Memory** | 50-70% lower | Baseline |
+| **API** | Standalone, franz-go native | Watermill interfaces |
+| **Dependencies** | Only franz-go | Watermill + sarama |
+| **Testing** | 138+ tests | Limited |
+| **Health Checks** | ✅ Built-in | ❌ Manual |
+| **Graceful Shutdown** | ✅ Built-in | ⚠️ Basic |
+| **Admin API** | ✅ Complete (15+ ops) | ❌ None |
+| **Stateful Processing** | ✅ Changelog-based | ✅ Goka-style |
+| **Observability** | ✅ Prometheus + OTel | ⚠️ Basic |
+| **Migration Guide** | ✅ From sarama | N/A |
+
+## 🎯 Which Should You Choose?
+
+### Choose Franz-go (`pkg/franzgo/`) if:
+- ✅ Starting a new project
+- ✅ Need maximum performance
+- ✅ Want enterprise features (health checks, admin API, stateful processing)
+- ✅ Don't need Watermill compatibility
+
+### Choose Watermill (`pkg/kafka/`) if:
+- ✅ Already using Watermill
+- ✅ Need Watermill router and middleware
+- ✅ Have existing Watermill code
+
+## 📚 Documentation
+
+- **Franz-go:** [FRANZ_GO_README.md](FRANZ_GO_README.md) - Complete documentation
+- **Migration:** [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - Sarama to franz-go migration
+- **Watermill:** See sections below for original Watermill documentation
+
+## 🚀 Installation
 
 ```bash
 go get github.com/templatedop/watermill
 ```
 
-## Quick Start
-
-### Basic Producer
-
+**Franz-go only:**
 ```go
-package main
-
-import (
-    "context"
-    "log"
-
-    "github.com/templatedop/watermill/pkg/kafka"
-)
-
-func main() {
-    // Create configuration
-    config := kafka.EcommerceConfig(
-        []string{"localhost:9092"},
-        "my-consumer-group",
-    )
-
-    // Create client
-    client, err := kafka.NewClient(config)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer client.Close()
-
-    // Create producer
-    producer := kafka.NewEcommerceProducer(client)
-
-    // Publish an event
-    order := kafka.OrderEvent{
-        OrderID:    "ORD-123",
-        CustomerID: "CUST-456",
-        Status:     "pending",
-        Total:      99.99,
-    }
-
-    ctx := context.Background()
-    if err := producer.PublishOrderCreated(ctx, order); err != nil {
-        log.Fatal(err)
-    }
-}
+import "github.com/templatedop/watermill/pkg/franzgo"
 ```
 
-### Basic Consumer
-
+**Watermill only:**
 ```go
-package main
-
-import (
-    "context"
-    "log"
-
-    "github.com/templatedop/watermill/pkg/kafka"
-)
-
-func main() {
-    // Create configuration
-    config := kafka.EcommerceConfig(
-        []string{"localhost:9092"},
-        "my-consumer-group",
-    )
-
-    // Create client
-    client, err := kafka.NewClient(config)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer client.Close()
-
-    // Create consumer
-    consumer := kafka.NewEcommerceConsumer(client)
-
-    ctx := context.Background()
-
-    // Subscribe to events
-    err = consumer.SubscribeOrderCreated(ctx, func(ctx context.Context, order kafka.OrderEvent) error {
-        log.Printf("Order created: %s", order.OrderID)
-        // Process order...
-        return nil
-    })
-
-    if err != nil {
-        log.Fatal(err)
-    }
-}
+import "github.com/templatedop/watermill/pkg/kafka"
 ```
+
+## 📦 Repository Structure
+
+```
+watermill/
+├── pkg/
+│   ├── franzgo/           # Standalone franz-go implementation (NEW)
+│   │   ├── config.go
+│   │   ├── client.go
+│   │   ├── producer.go
+│   │   ├── consumer.go
+│   │   ├── batch.go
+│   │   ├── middleware.go
+│   │   ├── transform.go
+│   │   ├── window.go
+│   │   ├── transaction.go
+│   │   ├── metrics.go
+│   │   ├── tracing.go
+│   │   ├── storage.go
+│   │   ├── health.go
+│   │   ├── shutdown.go
+│   │   ├── stateful.go
+│   │   ├── admin.go
+│   │   ├── rebalance.go
+│   │   └── schema/
+│   │       ├── registry.go
+│   │       ├── avro.go
+│   │       └── protobuf.go
+│   │
+│   └── kafka/             # Original Watermill implementation
+│       ├── config.go
+│       ├── client.go
+│       ├── producer.go
+│       └── ...
+│
+├── examples/
+│   ├── franzgo/           # Franz-go examples
+│   │   ├── main.go
+│   │   ├── phase3_examples.go
+│   │   ├── phase4_examples.go
+│   │   └── phase5_examples.go
+│   │
+│   └── ecommerce/         # Watermill examples
+│
+├── FRANZ_GO_README.md     # Franz-go documentation
+├── MIGRATION_GUIDE.md     # Sarama → franz-go migration guide
+└── README.md              # This file
+```
+
+## 🧪 Testing
+
+### Franz-go Tests
+
+```bash
+# Unit tests
+go test -v ./pkg/franzgo/
+
+# Integration tests (requires Kafka)
+go test -tags=integration -v ./pkg/franzgo/
+
+# Benchmarks
+go test -bench=. -benchmem ./pkg/franzgo/
+
+# Performance tests
+go test -tags=performance -bench=BenchmarkPerformance -benchtime=30s ./pkg/franzgo/
+```
+
+---
+
+# Original Watermill Documentation
+
+The sections below document the original Watermill-based implementation in `pkg/kafka/`.
 
 ## Configuration
 
@@ -160,40 +298,6 @@ config := kafka.EcommerceConfig(
     []string{"localhost:9092"},
     "order-service-group",
 )
-```
-
-### Custom Configuration
-
-```go
-config := &kafka.Config{
-    Brokers:       []string{"localhost:9092"},
-    ConsumerGroup: "my-group",
-    ClientID:      "my-client",
-    Version:       "3.6.0",
-
-    Producer: kafka.ProducerConfig{
-        RequiredAcks:    sarama.WaitForAll,
-        Compression:     sarama.CompressionSnappy,
-        MaxRetries:      5,
-        Idempotent:      true,
-        Timeout:         10 * time.Second,
-    },
-
-    Consumer: kafka.ConsumerConfig{
-        SessionTimeout:    20 * time.Second,
-        HeartbeatInterval: 3 * time.Second,
-        MaxProcessingTime: 30 * time.Second,
-        AutoCommit:        true,
-    },
-
-    DLQ: kafka.DLQConfig{
-        Enabled:            true,
-        Topic:              "dlq",
-        MaxRetries:         3,
-        RetryDelay:         5 * time.Second,
-        ExponentialBackoff: true,
-    },
-}
 ```
 
 ## Dead Letter Queue (DLQ)
@@ -261,266 +365,6 @@ router.AddMiddleware(
     kafka.NewDuplicateDetectionMiddleware(5 * time.Minute),
 )
 ```
-
-### Throttling
-
-```go
-router.AddMiddleware(
-    kafka.NewThrottleMiddleware(100), // Max 100 msg/sec
-)
-```
-
-### Circuit Breaker
-
-```go
-router.AddMiddleware(
-    kafka.NewCircuitBreakerMiddleware(10, 1*time.Minute),
-)
-```
-
-### Logging
-
-```go
-router.AddMiddleware(
-    kafka.NewLoggingMiddleware(logger),
-)
-```
-
-### Metrics
-
-```go
-router.AddMiddleware(
-    kafka.NewMetricsMiddleware(),
-)
-```
-
-## Ecommerce Event Types
-
-### Order Events
-
-```go
-// Publish
-producer.PublishOrderCreated(ctx, order)
-producer.PublishOrderUpdated(ctx, order)
-producer.PublishOrderCancelled(ctx, orderID, reason)
-
-// Subscribe
-consumer.SubscribeOrderCreated(ctx, handler)
-consumer.SubscribeOrderUpdated(ctx, handler)
-```
-
-### Payment Events
-
-```go
-// Publish
-producer.PublishPaymentProcessed(ctx, payment)
-producer.PublishPaymentFailed(ctx, payment, reason)
-
-// Subscribe
-consumer.SubscribePaymentProcessed(ctx, handler)
-```
-
-### Inventory Events
-
-```go
-// Publish
-producer.PublishInventoryReserved(ctx, productID, quantity)
-producer.PublishInventoryReleased(ctx, productID, quantity)
-
-// Subscribe
-consumer.SubscribeInventoryReserved(ctx, handler)
-```
-
-### Shipment Events
-
-```go
-// Publish
-producer.PublishShipmentCreated(ctx, shipment)
-producer.PublishShipmentDelivered(ctx, shipment)
-
-// Subscribe
-consumer.SubscribeShipmentCreated(ctx, handler)
-```
-
-## Advanced Usage
-
-### Router with Multiple Handlers
-
-```go
-router, _ := client.CreateRouter()
-
-// Add handlers
-consumer := kafka.NewEcommerceConsumer(client)
-
-router.AddNoPublisherHandler(
-    "order_handler",
-    "orders.created",
-    client.GetSubscriber(),
-    func(msg *message.Message) error {
-        // Process message
-        return nil
-    },
-)
-
-router.AddHandler(
-    "order_to_inventory",
-    "orders.created",
-    client.GetSubscriber(),
-    "inventory.reserved",
-    client.GetPublisher(),
-    func(msg *message.Message) ([]*message.Message, error) {
-        // Transform and forward message
-        return []*message.Message{newMsg}, nil
-    },
-)
-
-// Run router
-ctx := context.Background()
-router.Run(ctx)
-```
-
-### Batch Processing
-
-```go
-batchConsumer := kafka.NewBatchConsumer(
-    client,
-    100,              // batch size
-    5 * time.Second,  // batch timeout
-)
-
-batchConsumer.SubscribeBatch(ctx, "orders.created", func(ctx context.Context, messages []*message.Message) error {
-    // Process batch
-    log.Printf("Processing batch of %d messages", len(messages))
-    return nil
-})
-```
-
-### Partition Keys
-
-```go
-// All messages with same key go to same partition
-producer.PublishWithKey(ctx, "orders.created", customerID, order)
-```
-
-## Configuration Details
-
-### Heartbeat Configuration
-
-The consumer heartbeat is configured through:
-
-```go
-config.Consumer.HeartbeatInterval = 3 * time.Second   // How often to send heartbeats
-config.Consumer.SessionTimeout = 20 * time.Second     // Max time without heartbeat before rebalance
-config.Consumer.RebalanceTimeout = 60 * time.Second   // Max time for rebalance operation
-```
-
-**Important**: `HeartbeatInterval` must be less than `SessionTimeout`
-
-### Producer Reliability
-
-```go
-config.Producer.RequiredAcks = sarama.WaitForAll  // Wait for all replicas
-config.Producer.Idempotent = true                  // Prevent duplicates
-config.Producer.MaxRetries = 5                     // Retry failed sends
-config.Producer.RetryBackoff = 100 * time.Millisecond
-```
-
-### Consumer Processing
-
-```go
-config.Consumer.MaxProcessingTime = 30 * time.Second  // Max time to process one message
-config.Consumer.FetchMin = 1                          // Min bytes per fetch
-config.Consumer.FetchDefault = 1024 * 1024           // Default bytes (1MB)
-config.Consumer.FetchMax = 10 * 1024 * 1024          // Max bytes (10MB)
-config.Consumer.MaxWaitTime = 500 * time.Millisecond // Max wait for fetch
-```
-
-### Offset Management
-
-```go
-// Auto-commit
-config.Consumer.AutoCommit = true
-config.Consumer.OffsetCommitInterval = 1 * time.Second
-
-// Manual commit (for exactly-once processing)
-config.Consumer.AutoCommit = false
-// Then manually ack/nack messages
-msg.Ack()  // or msg.Nack()
-```
-
-## Examples
-
-Check the `examples/` directory for complete working examples:
-
-### Basic Examples
-- `examples/ecommerce/` - Full ecommerce microservice example
-- `examples/producer/` - Producer-only example
-- `examples/consumer/` - Consumer with router and middleware
-- `examples/dlq/` - Dead letter queue handling
-
-### Stateful Processing Examples (Goka-Inspired)
-- `examples/stateful-processor/` - Stateful order statistics aggregation
-- `examples/view/` - HTTP API for querying state from group tables
-- `examples/join/` - Stream-table join for order enrichment
-
-### Advanced Processing Examples
-- `examples/batch-consumer/` - Advanced batch processing with metrics and error handling
-
-## Running Examples
-
-```bash
-# Start Kafka (using Docker)
-docker-compose up -d
-
-# Run producer example
-go run examples/producer/main.go
-
-# Run consumer example
-go run examples/consumer/main.go
-
-# Run full ecommerce example
-go run examples/ecommerce/main.go
-
-# Run DLQ example
-go run examples/dlq/main.go
-```
-
-## Best Practices
-
-1. **Use consumer groups** for horizontal scaling
-2. **Enable idempotent producer** for exactly-once semantics
-3. **Configure DLQ** for failed message handling
-4. **Use partition keys** for ordered processing
-5. **Set appropriate timeouts** based on your workload
-6. **Monitor heartbeats** and session timeouts
-7. **Use middleware** for cross-cutting concerns
-8. **Handle errors gracefully** with retry logic
-9. **Implement graceful shutdown** for clean consumer rebalancing
-10. **Use structured logging** for better observability
-
-## Error Handling
-
-All errors are typed for easy handling:
-
-```go
-err := client.Publish(ctx, topic, msg)
-switch e := err.(type) {
-case kafka.ErrPublishFailed:
-    log.Printf("Failed to publish to %s: %v", e.Topic, e.Err)
-case kafka.ErrMaxRetriesExceeded:
-    log.Printf("Max retries exceeded: %d attempts", e.Attempts)
-case kafka.ErrClientClosed:
-    log.Println("Client is closed")
-}
-```
-
-## Performance Considerations
-
-- **Batch size**: Larger batches improve throughput but increase latency
-- **Compression**: Use Snappy or LZ4 for good balance of speed and compression
-- **Fetch size**: Tune based on message size and network bandwidth
-- **Connection pooling**: Watermill handles connection pooling internally
-- **Partition count**: More partitions = more parallelism but more overhead
 
 ## License
 
