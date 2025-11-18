@@ -25,4 +25,8 @@ require (
 
 	// Security
 	github.com/xdg-go/scram v1.1.2
+
+	// Franz-go (high-performance Kafka client)
+	github.com/twmb/franz-go v1.15.4
+	github.com/twmb/franz-go/pkg/kmsg v1.7.0
 )
