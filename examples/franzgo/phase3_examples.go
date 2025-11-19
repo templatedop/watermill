@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo"
+	"gitlab.cept.gov.in/it-2.0-common/watermill/pkg/franzgo"
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 

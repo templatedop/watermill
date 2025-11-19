@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+	"gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 )
 
 // This example demonstrates all 5 production-ready features:

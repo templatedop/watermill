@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+	"gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 )
 
 func getKafkaBrokers() []string {

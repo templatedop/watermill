@@ -65,7 +65,7 @@ Production-ready Prometheus metrics for monitoring and alerting.
 
 ```go
 import (
-    "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+    "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
     "github.com/prometheus/client_golang/prometheus/promhttp"
     "net/http"
 )
@@ -143,7 +143,7 @@ Distributed tracing with OpenTelemetry for full observability across microservic
 
 ```go
 import (
-    "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+    "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
     "go.opentelemetry.io/otel"
     "go.opentelemetry.io/otel/exporters/jaeger"
     sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -228,7 +228,7 @@ Three production-ready storage backends for stateful processing.
 Fast embedded key-value store with excellent performance.
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka/storage"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka/storage"
 
 // Create LevelDB storage
 storage, err := storage.NewLevelDBStorage("/var/lib/processor/state")
@@ -267,7 +267,7 @@ stats, _ := storage.GetStats()
 Redis backend for sharing state across multiple instances.
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka/storage"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka/storage"
 
 // Create Redis storage
 config := storage.DefaultRedisConfig("localhost:6379")
@@ -298,7 +298,7 @@ stats, _ := storage.GetStats() // Redis INFO stats
 High-performance embedded database from Dgraph.
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka/storage"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka/storage"
 
 // Create BadgerDB storage
 config := storage.DefaultBadgerConfig("/var/lib/processor/badger")
@@ -326,7 +326,7 @@ storage.Backup("/backup/path", 0)
 ### Using with Processors
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 
 // Use persistent storage with processor
 leveldbStorage, _ := storage.NewLevelDBStorage("/var/lib/state")
@@ -355,7 +355,7 @@ Transactional processing with exactly-once guarantees.
 ### Transactional Producer
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 
 // Create transactional config
 txnConfig := kafka.DefaultTransactionalConfig("my-app-1")
@@ -445,7 +445,7 @@ Time-based windowing for stream aggregation.
 Fixed-size, non-overlapping windows:
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 
 // Create tumbling window (5-minute windows)
 window := kafka.NewTumblingWindow(5*time.Minute, func(wc *kafka.WindowContext) error {
@@ -579,7 +579,7 @@ Avro and Protobuf support with Confluent Schema Registry integration.
 ### Schema Registry Client
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka/schema"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka/schema"
 
 // Create registry client
 config := schema.DefaultSchemaRegistryConfig("http://localhost:8081")
@@ -614,7 +614,7 @@ subjects, _ := registry.ListSubjects()
 ### Avro Codec
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka/schema"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka/schema"
 
 // Create Avro codec
 codec, err := schema.NewAvroCodec(registry, "orders-value")
@@ -645,7 +645,7 @@ decodedMap := decoded.(map[string]interface{})
 ### Protobuf Codec
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka/schema"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka/schema"
 
 // Create Protobuf codec
 codec, err := schema.NewProtobufCodec(registry, "orders-value")
@@ -723,7 +723,7 @@ Functional stream transformations with Map, Filter, and FlatMap operations.
 Transform each message using a function:
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 
 // Create stream transformer
 transformer := kafka.NewStreamTransformer(client, "input-topic", "output-topic")
@@ -941,7 +941,7 @@ Comprehensive SASL and TLS/SSL security features for production deployments.
 Simple username/password authentication:
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 
 // Create SASL PLAIN config
 saslConfig := kafka.NewSASLPlainConfig("username", "password")

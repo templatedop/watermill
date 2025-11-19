@@ -1,4 +1,4 @@
-module gitlab.cept.gov.in/it2.0common/watermill
+module gitlab.cept.gov.in/it-2.0-common/watermill
 
 go 1.21
 

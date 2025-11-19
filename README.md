@@ -18,7 +18,7 @@ A **standalone high-performance Kafka client** using [franz-go](https://github.c
 ### Quick Start (Franz-go)
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/franzgo"
 
 // Create config
 config := franzgo.NewConfigBuilder().
@@ -111,7 +111,7 @@ The **original implementation** built on top of [Watermill](https://github.com/T
 ### Quick Start (Watermill)
 
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 
 // Create config
 config := kafka.EcommerceConfig(
@@ -194,17 +194,17 @@ consumer.SubscribeOrderCreated(ctx, func(ctx context.Context, order kafka.OrderE
 ## 🚀 Installation
 
 ```bash
-go get gitlab.cept.gov.in/it2.0common/watermill
+go get gitlab.cept.gov.in/it-2.0-common/watermill
 ```
 
 **Franz-go only:**
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/franzgo"
 ```
 
 **Watermill only:**
 ```go
-import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
+import "gitlab.cept.gov.in/it-2.0-common/watermill/pkg/kafka"
 ```
 
 ## 📦 Repository Structure
