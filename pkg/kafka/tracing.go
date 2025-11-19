@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	tracerName = "github.com/templatedop/watermill/pkg/kafka"
+	tracerName = "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
 )
 
 // TracingConfig configures OpenTelemetry tracing

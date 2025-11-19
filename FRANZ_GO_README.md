@@ -55,7 +55,7 @@ pkg/franzgo/
 ### Installation
 
 ```bash
-go get github.com/templatedop/watermill/pkg/franzgo
+go get gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo
 go get github.com/twmb/franz-go
 ```
 
@@ -68,7 +68,7 @@ import (
     "context"
     "log"
 
-    "github.com/templatedop/watermill/pkg/franzgo"
+    "gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo"
 )
 
 func main() {
@@ -402,10 +402,10 @@ config := franzgo.NewConfigBuilder().
 1. **Update imports**
    ```go
    // Old
-   import "github.com/templatedop/watermill/pkg/kafka"
+   import "gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
 
    // New
-   import "github.com/templatedop/watermill/pkg/franzgo"
+   import "gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo"
    ```
 
 2. **Update configuration**

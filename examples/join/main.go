@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
-	"github.com/templatedop/watermill/pkg/kafka"
+	"gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
 )
 
 // This example demonstrates stream-table joins

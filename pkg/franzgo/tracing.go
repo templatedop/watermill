@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	tracerName = "github.com/templatedop/watermill/pkg/franzgo"
+	tracerName = "gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo"
 )
 
 // TracingConfig configures OpenTelemetry tracing

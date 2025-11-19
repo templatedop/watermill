@@ -12,7 +12,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/templatedop/watermill/pkg/kafka"
+	"gitlab.cept.gov.in/it2.0common/watermill/pkg/kafka"
 )
 
 func main() {

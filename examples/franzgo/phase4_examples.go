@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/templatedop/watermill/pkg/franzgo"
-	"github.com/templatedop/watermill/pkg/franzgo/schema"
+	"gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo"
+	"gitlab.cept.gov.in/it2.0common/watermill/pkg/franzgo/schema"
 	"github.com/twmb/franz-go/pkg/kgo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"

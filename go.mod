@@ -1,4 +1,4 @@
-module github.com/templatedop/watermill
+module gitlab.cept.gov.in/it2.0common/watermill
 
 go 1.21
 
