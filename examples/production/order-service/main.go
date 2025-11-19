@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/templatedop/watermill/pkg/franzgo"
+	"gitlab.cept.gov.in/it-2.0-common/watermill/pkg/franzgo"
 )
 
 // Order represents an e-commerce order

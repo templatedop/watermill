@@ -15,7 +15,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/templatedop/watermill/pkg/franzgo"
+	"gitlab.cept.gov.in/it-2.0-common/watermill/pkg/franzgo"
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
